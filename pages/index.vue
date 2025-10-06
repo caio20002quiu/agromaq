@@ -1,437 +1,318 @@
 <template>
-  <div>
-    <!-- Hero Section -->
-    <section class="bg-gradient-to-r from-green-600 to-green-700 text-white">
-      <div class="container mx-auto px-4 py-16">
-        <div class="max-w-4xl mx-auto text-center">
-          <h1 class="text-4xl md:text-6xl font-bold mb-6">
-            Encontre a Máquina Agrícola Perfeita
-          </h1>
-          <p class="text-xl md:text-2xl mb-8 text-green-100">
-            A plataforma especializada que conecta vendedores e compradores de máquinas agrícolas
-          </p>
-          
-          <!-- Search Bar -->
-          <div class="bg-white rounded-lg p-6 shadow-lg max-w-4xl mx-auto">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
-                <select class="w-full p-3 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                  <option value="">Selecione</option>
-                  <option value="trator">Trator</option>
-                  <option value="colheitadeira">Colheitadeira</option>
-                  <option value="pulverizador">Pulverizador</option>
-                  <option value="plantadeira">Plantadeira</option>
-                  <option value="implementos">Implementos</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Marca</label>
-                <select class="w-full p-3 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                  <option value="">Selecione</option>
-                  <option value="john-deere">John Deere</option>
-                  <option value="case">Case</option>
-                  <option value="massey-ferguson">Massey Ferguson</option>
-                  <option value="new-holland">New Holland</option>
-                  <option value="valtra">Valtra</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Ano</label>
-                <select class="w-full p-3 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                  <option value="">Selecione</option>
-                  <option value="2024">2024</option>
-                  <option value="2023">2023</option>
-                  <option value="2022">2022</option>
-                  <option value="2021">2021</option>
-                  <option value="2020">2020</option>
-                  <option value="2019">2019 ou anterior</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Preço até</label>
-                <select class="w-full p-3 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                  <option value="">Selecione</option>
-                  <option value="100000">R$ 100.000</option>
-                  <option value="200000">R$ 200.000</option>
-                  <option value="300000">R$ 300.000</option>
-                  <option value="500000">R$ 500.000</option>
-                  <option value="1000000">R$ 1.000.000+</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">&nbsp;</label>
-                <button class="btn-primary w-full px-6 py-3">
-                  <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+  <div class="min-h-screen bg-gray-50">
+    <div class="container mx-auto px-4 py-6 md:py-8 max-w-[1600px]">
+      <!-- Header -->
+      <div class="mb-6 md:mb-8">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Máquinas Agrícolas</h1>
+        <p class="text-sm md:text-base text-gray-600">
+          {{ totalResults }} anúncio{{ totalResults !== 1 ? 's' : '' }} 
+          {{ Object.keys(currentFilters).length > 0 ? 'encontrado' + (totalResults !== 1 ? 's' : '') : 'disponíve' + (totalResults !== 1 ? 'is' : 'l') }}
+        </p>
+      </div>
+
+      <ClientOnly>
+        <!-- Loading -->
+        <div v-if="pending" class="flex justify-center items-center py-16">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+        </div>
+
+        <!-- Erro -->
+        <div v-else-if="error" class="bg-red-50 border border-red-200 text-red-800 px-4 md:px-6 py-3 md:py-4 rounded-lg">
+          <p class="text-sm md:text-base">Erro ao carregar anúncios. Por favor, tente novamente.</p>
+        </div>
+
+        <!-- Conteúdo Principal -->
+        <div v-else class="flex flex-col lg:flex-row gap-6">
+          <!-- Sidebar de Filtros -->
+          <aside class="w-full lg:w-80 flex-shrink-0">
+            <FiltersSidebar @apply="onFilters" />
+          </aside>
+
+          <!-- Grid de Anúncios -->
+          <main class="flex-1 min-w-0">
+            <!-- Filtros Ativos -->
+            <div v-if="activeFiltersDisplay.length > 0" class="mb-6 bg-white rounded-lg shadow-sm p-4">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                   </svg>
-                  Buscar
+                  Filtros Ativos ({{ activeFiltersDisplay.length }})
+                </h3>
+                <button 
+                  @click="clearAllFilters"
+                  class="text-xs text-red-600 hover:text-red-700 font-medium flex items-center gap-1"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Limpar Todos
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Search and Filter Section -->
-    <section class="py-16 bg-white">
-      <div class="container mx-auto px-4">
-        <div class="flex flex-col lg:flex-row gap-8">
-          <!-- Sidebar Filters -->
-          <div class="lg:w-80 bg-gray-50 rounded-lg p-6">
-            <h3 class="text-xl font-bold text-gray-800 mb-6">Buscar</h3>
-            
-            <!-- Tipo -->
-            <div class="mb-6">
-              <label class="block text-sm font-semibold text-gray-700 mb-3">Tipo:</label>
-              <select class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
-                <option value="">SELECIONE</option>
-                <option value="trator">Tratores</option>
-                <option value="colheitadeira">Colheitadeiras</option>
-                <option value="pulverizador">Pulverizadores</option>
-                <option value="plantadeira">Plantadeiras</option>
-                <option value="implementos">Implementos</option>
-              </select>
-            </div>
-
-            <!-- Marcas -->
-            <div class="mb-6">
-              <label class="block text-sm font-semibold text-gray-700 mb-3">Marcas:</label>
-              <select class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
-                <option value="">SELECIONE</option>
-                <option value="john-deere">John Deere</option>
-                <option value="case">Case IH</option>
-                <option value="new-holland">New Holland</option>
-                <option value="massey-ferguson">Massey Ferguson</option>
-                <option value="valtra">Valtra</option>
-                <option value="fendt">Fendt</option>
-              </select>
-            </div>
-
-            <!-- Modelo -->
-            <div class="mb-6">
-              <label class="block text-sm font-semibold text-gray-700 mb-3">Digite o modelo</label>
-              <input type="text" placeholder="Digite aqui..." 
-                     class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
-            </div>
-
-            <!-- Botão de Busca -->
-            <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
-              🔍 BUSCAR
-            </button>
-
-            <!-- Busca Detalhada -->
-            <div class="mt-6 pt-6 border-t border-gray-200">
-              <h4 class="text-sm font-semibold text-blue-600 mb-3 cursor-pointer hover:text-blue-700">
-                🔍 BUSCA DETALHADA
-              </h4>
-            </div>
-
-            <!-- Busca por Categoria -->
-            <div class="mt-6 pt-6 border-t border-gray-200">
-              <h4 class="text-sm font-semibold text-blue-600 mb-3 cursor-pointer hover:text-blue-700">
-                📂 BUSCA POR CATEGORIA
-              </h4>
-            </div>
-          </div>
-
-          <!-- Categories Grid -->
-          <div class="flex-1">
-            <h2 class="text-2xl font-bold text-gray-800 mb-8">
-              Categorias de Máquinas
-            </h2>
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              <div v-for="category in categories" :key="category.name" 
-                   class="bg-white rounded-lg p-6 text-center shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer hover:-translate-y-1 border border-gray-200">
-                <div class="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
-                  <svg class="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 24 24">
-                    <path :d="category.icon"/>
-                  </svg>
+              <div class="flex flex-wrap gap-2">
+                <div 
+                  v-for="filter in activeFiltersDisplay" 
+                  :key="filter.key"
+                  class="inline-flex items-center gap-2 bg-green-50 text-green-700 border border-green-200 px-3 py-1.5 rounded-full text-sm"
+                >
+                  <span class="font-medium">{{ filter.label }}:</span>
+                  <span>{{ filter.value }}</span>
+                  <button 
+                    @click="removeFilter(filter.key)"
+                    class="hover:bg-green-100 rounded-full p-0.5 transition-colors"
+                  >
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
                 </div>
-                <h3 class="font-semibold text-gray-800 mb-2">{{ category.name }}</h3>
-                <p class="text-sm text-gray-500">{{ category.count }} anúncios</p>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </section>
 
-    <!-- Featured Machines -->
-    <section class="py-16 bg-gray-50">
-      <div class="container mx-auto px-4">
-        <div class="flex justify-between items-center mb-12">
-          <div>
-            <h2 class="text-3xl font-bold text-gray-800 mb-2">
-              Máquinas em Destaque
-            </h2>
-            <p class="text-gray-600">{{ featuredMachines.length }} máquinas disponíveis</p>
-          </div>
-          <NuxtLink to="/maquinas" class="text-green-600 hover:text-green-700 font-semibold flex items-center">
-            Ver todas
-            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-            </svg>
-          </NuxtLink>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          <div v-for="machine in featuredMachines" :key="machine.id" 
-               class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-            <div class="h-48 bg-gray-200 relative overflow-hidden">
-              <img :src="machine.image" :alt="machine.title" 
-                   class="w-full h-full object-cover hover:scale-110 transition-transform duration-500" v-if="machine.image">
-              <div v-else class="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-                <svg class="w-16 h-16 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                </svg>
-              </div>
-              <div class="absolute top-3 left-3 bg-green-600 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                {{ machine.type }}
-              </div>
-              <div class="absolute top-3 right-3 bg-black bg-opacity-60 text-white px-2 py-1 rounded text-xs">
-                {{ machine.year }}
-              </div>
-              <div v-if="machine.isNew" class="absolute bottom-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-                NOVO
-              </div>
-            </div>
-            <div class="p-4">
-              <h3 class="font-bold text-lg mb-1 text-gray-800">{{ machine.title }}</h3>
-              <p class="text-gray-500 text-sm mb-2 flex items-center">
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                </svg>
-                {{ machine.location }}
-              </p>
-              <div class="flex items-center text-xs text-gray-500 mb-3 space-x-4">
-                <span>{{ machine.hours }}h</span>
-                <span>{{ machine.brand }}</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <div>
-                  <span class="text-2xl font-bold text-green-600">
-                    R$ {{ machine.price.toLocaleString('pt-BR') }}
-                  </span>
-                  <div class="text-xs text-gray-500 mt-1">
-                    ou {{ machine.installments }}x de R$ {{ Math.round(machine.price / machine.installments).toLocaleString('pt-BR') }}
-                  </div>
-                </div>
-                <button class="bg-green-100 text-green-700 hover:bg-green-200 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
-                  Ver detalhes
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Statistics Section -->
-    <section class="py-16 bg-white">
-      <div class="container mx-auto px-4">
-        <div class="text-center mb-12">
-          <h2 class="text-3xl font-bold text-gray-800 mb-4">
-            Destaque em Números
-          </h2>
-          <p class="text-gray-600">A maior plataforma de máquinas agrícolas do Brasil</p>
-        </div>
-        
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
-          <div class="text-center">
-            <div class="text-4xl font-bold text-green-600 mb-2">1.2M+</div>
-            <div class="text-gray-700 font-medium">Anúncios Publicados</div>
-          </div>
-          <div class="text-center">
-            <div class="text-4xl font-bold text-green-600 mb-2">45K+</div>
-            <div class="text-gray-700 font-medium">Vendedores Ativos</div>
-          </div>
-          <div class="text-center">
-            <div class="text-4xl font-bold text-green-600 mb-2">320K+</div>
-            <div class="text-gray-700 font-medium">Compradores</div>
-          </div>
-          <div class="text-center">
-            <div class="text-4xl font-bold text-green-600 mb-2">15+</div>
-            <div class="text-gray-700 font-medium">Anos de Mercado</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="bg-gradient-to-r from-green-600 to-green-700 text-white py-16">
-      <div class="container mx-auto px-4">
-        <div class="flex flex-col lg:flex-row items-center justify-between">
-          <div class="lg:w-2/3 mb-8 lg:mb-0">
-            <h2 class="text-3xl font-bold mb-4">
-              Pronto para Anunciar sua Máquina?
-            </h2>
-            <p class="text-xl text-green-100 mb-6">
-              Cadastre seu anúncio gratuitamente e alcance milhares de compradores interessados em todo o Brasil
-            </p>
-            <div class="flex flex-col sm:flex-row gap-4">
-              <NuxtLink to="/anunciar" class="bg-white text-green-600 hover:bg-gray-100 font-semibold py-3 px-8 rounded-lg transition-colors inline-block text-center">
-                Anunciar Gratuitamente
-              </NuxtLink>
-              <NuxtLink to="/sobre" class="border-2 border-white text-white hover:bg-white hover:text-green-600 font-semibold py-3 px-8 rounded-lg transition-colors inline-block text-center">
-                Saiba Mais
+            <!-- Sem Anúncios -->
+            <div v-if="machines.length === 0" class="text-center py-12 md:py-16 bg-white rounded-lg shadow-sm">
+              <svg class="w-16 h-16 md:w-20 md:h-20 mx-auto text-gray-300 mb-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+              </svg>
+              <h3 class="text-lg md:text-xl font-semibold text-gray-700 mb-2">Nenhum anúncio encontrado</h3>
+              <p class="text-sm md:text-base text-gray-500 mb-4 md:mb-6">Seja o primeiro a anunciar uma máquina!</p>
+              <NuxtLink to="/dashboard/novo-anuncio" class="inline-block bg-green-600 text-white px-5 md:px-6 py-2.5 md:py-3 rounded-lg text-sm md:text-base font-semibold hover:bg-green-700 transition-colors">
+                Criar Anúncio
               </NuxtLink>
             </div>
-          </div>
-          <div class="lg:w-1/3 text-center">
-            <div class="bg-white bg-opacity-10 rounded-lg p-6">
-              <div class="text-2xl font-bold mb-2">0%</div>
-              <div class="text-green-100">Taxa de Comissão</div>
-              <div class="text-sm text-green-200 mt-2">Anuncie sem custos</div>
+
+            <!-- Grid de Cards -->
+            <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+              <MachineCard v-for="machine in machines" :key="machine.id" :machine="machine" />
             </div>
-          </div>
+          </main>
         </div>
-      </div>
-    </section>
+
+        <template #fallback>
+          <div class="flex justify-center items-center py-16">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+          </div>
+        </template>
+      </ClientOnly>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import FiltersSidebar from '../components/filters/FiltersSidebar.vue'
+import MachineCard from '../components/machine/MachineCard.vue'
 
+const api = useApi()
+const machines = ref<any[]>([])
+const pending = ref(true)
+const error = ref<Error | null>(null)
+const totalResults = ref(0)
+const currentFilters = ref<Record<string, any>>({})
 
-// Dados mockados para demonstração
-const categories = [
-  {
-    name: 'Tratores',
-    count: 156,
-    icon: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'
-  },
-  {
-    name: 'Colheitadeiras',
-    count: 89,
-    icon: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'
-  },
-  {
-    name: 'Pulverizadores',
-    count: 67,
-    icon: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'
-  },
-  {
-    name: 'Plantadeiras',
-    count: 45,
-    icon: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'
-  },
-  {
-    name: 'Implementos',
-    count: 234,
-    icon: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'
+// Dados para labels dos filtros
+const categorias = ref<any[]>([])
+const marcas = ref<any[]>([])
+const modelos = ref<any[]>([])
+const estados = ref<any[]>([])
+const municipios = ref<any[]>([])
+
+// Computed para exibir filtros ativos com labels
+const activeFiltersDisplay = computed(() => {
+  const filters: Array<{ key: string; label: string; value: string }> = []
+  
+  if (currentFilters.value.busca) {
+    filters.push({
+      key: 'busca',
+      label: 'Busca',
+      value: currentFilters.value.busca
+    })
   }
-]
-
-const featuredMachines = [
-  {
-    id: 1,
-    title: 'Trator John Deere 6110J',
-    type: 'Trator',
-    brand: 'John Deere',
-    year: '2021',
-    price: 385000,
-    installments: 48,
-    location: 'Ribeirão Preto, SP',
-    hours: '2.580',
-    isNew: false,
-    image: null
-  },
-  {
-    id: 2,
-    title: 'Case IH Axial Flow 2166',
-    type: 'Colheitadeira',
-    brand: 'Case IH',
-    year: '2019',
-    price: 650000,
-    installments: 60,
-    location: 'Sorriso, MT',
-    hours: '1.850',
-    isNew: false,
-    image: null
-  },
-  {
-    id: 3,
-    title: 'Pulverizador Jacto Uniport 3030',
-    type: 'Pulverizador',
-    brand: 'Jacto',
-    year: '2022',
-    price: 285000,
-    installments: 36,
-    location: 'Rio Verde, GO',
-    hours: '1.200',
-    isNew: false,
-    image: null
-  },
-  {
-    id: 4,
-    title: 'New Holland T7.245',
-    type: 'Trator',
-    brand: 'New Holland',
-    year: '2023',
-    price: 520000,
-    installments: 48,
-    location: 'Cascavel, PR',
-    hours: '850',
-    isNew: true,
-    image: null
-  },
-  {
-    id: 5,
-    title: 'Massey Ferguson 9895',
-    type: 'Colheitadeira',
-    brand: 'Massey Ferguson',
-    year: '2020',
-    price: 720000,
-    installments: 60,
-    location: 'Dourados, MS',
-    hours: '2.100',
-    isNew: false,
-    image: null
-  },
-  {
-    id: 6,
-    title: 'Valtra BT210',
-    type: 'Trator',
-    brand: 'Valtra',
-    year: '2021',
-    price: 295000,
-    installments: 42,
-    location: 'Barreiras, BA',
-    hours: '1.950',
-    isNew: false,
-    image: null
-  },
-  {
-    id: 7,
-    title: 'John Deere S770',
-    type: 'Colheitadeira',
-    brand: 'John Deere',
-    year: '2024',
-    price: 1250000,
-    installments: 72,
-    location: 'Primavera do Leste, MT',
-    hours: '420',
-    isNew: true,
-    image: null
-  },
-  {
-    id: 8,
-    title: 'Plantadeira John Deere 2126',
-    type: 'Plantadeira',
-    brand: 'John Deere',
-    year: '2020',
-    price: 175000,
-    installments: 36,
-    location: 'Uberaba, MG',
-    hours: '1.680',
-    isNew: false,
-    image: null
+  
+  if (currentFilters.value.id_categoria) {
+    const cat = categorias.value.find(c => c.id === parseInt(currentFilters.value.id_categoria))
+    filters.push({
+      key: 'id_categoria',
+      label: 'Categoria',
+      value: cat?.nome || 'N/A'
+    })
   }
-]
+  
+  if (currentFilters.value.id_marca) {
+    const marca = marcas.value.find(m => m.id === parseInt(currentFilters.value.id_marca))
+    filters.push({
+      key: 'id_marca',
+      label: 'Marca',
+      value: marca?.nome || 'N/A'
+    })
+  }
+  
+  if (currentFilters.value.id_modelo) {
+    const modelo = modelos.value.find(m => m.id === parseInt(currentFilters.value.id_modelo))
+    filters.push({
+      key: 'id_modelo',
+      label: 'Modelo',
+      value: modelo?.nome || 'N/A'
+    })
+  }
+  
+  if (currentFilters.value.ano_min || currentFilters.value.ano_max) {
+    const min = currentFilters.value.ano_min || '...'
+    const max = currentFilters.value.ano_max || '...'
+    filters.push({
+      key: 'ano',
+      label: 'Ano',
+      value: `${min} até ${max}`
+    })
+  }
+  
+  if (currentFilters.value.preco_min || currentFilters.value.preco_max) {
+    const min = currentFilters.value.preco_min ? `R$ ${parseFloat(currentFilters.value.preco_min).toLocaleString('pt-BR')}` : '...'
+    const max = currentFilters.value.preco_max ? `R$ ${parseFloat(currentFilters.value.preco_max).toLocaleString('pt-BR')}` : '...'
+    filters.push({
+      key: 'preco',
+      label: 'Preço',
+      value: `${min} até ${max}`
+    })
+  }
+  
+  if (currentFilters.value.horas_min || currentFilters.value.horas_max) {
+    const min = currentFilters.value.horas_min || '...'
+    const max = currentFilters.value.horas_max || '...'
+    filters.push({
+      key: 'horas',
+      label: 'Horas',
+      value: `${min}h até ${max}h`
+    })
+  }
+  
+  if (currentFilters.value.id_estado) {
+    const estado = estados.value.find(e => e.id === parseInt(currentFilters.value.id_estado))
+    filters.push({
+      key: 'id_estado',
+      label: 'Estado',
+      value: estado?.nome || 'N/A'
+    })
+  }
+  
+  if (currentFilters.value.id_municipio) {
+    const mun = municipios.value.find(m => m.id === parseInt(currentFilters.value.id_municipio))
+    filters.push({
+      key: 'id_municipio',
+      label: 'Município',
+      value: mun?.nome || 'N/A'
+    })
+  }
+  
+  return filters
+})
 
-// SEO Meta
+async function loadData(filters: Record<string, any> = {}) {
+  pending.value = true
+  error.value = null
+  currentFilters.value = filters
+  
+  try {
+    console.log('🔍 Buscando com filtros:', filters)
+    const response = await api.getAnuncios(filters)
+    
+    // Backend agora retorna { data, total, limit, offset }
+    if (response.data) {
+      machines.value = response.data
+      totalResults.value = response.total
+    } else {
+      // Fallback para formato antigo
+      machines.value = response as any || []
+      totalResults.value = machines.value.length
+    }
+    
+    console.log('✅ Anúncios carregados:', machines.value.length, 'de', totalResults.value)
+    console.log('📸 Primeiro anúncio com imagens:', machines.value[0]?.imagens)
+    console.log('📸 Todos os anúncios:', machines.value.map(m => ({ id: m.id, titulo: m.titulo, imagens: m.imagens?.length || 0 })))
+  } catch (err: any) {
+    error.value = err
+    console.error('❌ Erro ao carregar anúncios:', err)
+  } finally {
+    pending.value = false
+  }
+}
 
+function onFilters(filters: Record<string, any>) {
+  console.log('🎯 Filtros aplicados:', filters)
+  
+  // Armazenar dados para labels
+  if (filters.id_modelo && modelos.value.length === 0) {
+    // Carregar modelos se necessário para exibir label
+    const marcaId = parseInt(filters.id_marca)
+    if (marcaId) {
+      api.getModelos(marcaId).then((data: any) => {
+        modelos.value = data
+      })
+    }
+  }
+  
+  if (filters.id_municipio && municipios.value.length === 0) {
+    // Carregar municípios se necessário para exibir label
+    const estadoId = parseInt(filters.id_estado)
+    if (estadoId) {
+      const estado = estados.value.find(e => e.id === estadoId)
+      if (estado) {
+        api.getMunicipios(estado.sigla).then((data: any) => {
+          municipios.value = data
+        })
+      }
+    }
+  }
+  
+  loadData(filters)
+}
+
+function removeFilter(key: string) {
+  const newFilters = { ...currentFilters.value }
+  
+  // Remover filtros relacionados
+  if (key === 'ano') {
+    delete newFilters.ano_min
+    delete newFilters.ano_max
+  } else if (key === 'preco') {
+    delete newFilters.preco_min
+    delete newFilters.preco_max
+  } else if (key === 'horas') {
+    delete newFilters.horas_min
+    delete newFilters.horas_max
+  } else if (key === 'id_marca') {
+    delete newFilters.id_marca
+    delete newFilters.id_modelo // Limpa modelo também
+    modelos.value = []
+  } else if (key === 'id_estado') {
+    delete newFilters.id_estado
+    delete newFilters.id_municipio // Limpa município também
+    municipios.value = []
+  } else {
+    delete newFilters[key]
+  }
+  
+  loadData(newFilters)
+}
+
+function clearAllFilters() {
+  modelos.value = []
+  municipios.value = []
+  loadData({})
+}
+
+// Carregar dados apenas no cliente
+onMounted(async () => {
+  console.log('🚀 Homepage montada - Carregando anúncios...')
+  
+  // Carregar dados para labels dos filtros
+  try {
+    categorias.value = await api.getCategorias() as any
+    marcas.value = await api.getMarcas() as any
+    estados.value = await api.getEstados() as any
+  } catch (error) {
+    console.error('Erro ao carregar dados dos filtros:', error)
+  }
+  
+  loadData()
+})
 </script>
