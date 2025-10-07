@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model usuarios {
+  id            Int         @id @default(autoincrement())
+  nome          String      @db.VarChar(150)
+  email         String      @unique @db.VarChar(150)
+  senha_hash    String
+  telefone      String?     @db.VarChar(20)
+  data_cadastro DateTime?   @default(now()) @db.Timestamp(6)
+  ativo         Boolean     @default(true)
+  cpf_cnpj      BigInt      @unique
+  anuncios      anuncios[]
+  favoritos     favoritos[]
+}
+
+model categorias {
+  id       Int        @id @default(autoincrement())
+  nome     String     @unique @db.VarChar(100)
+  anuncios anuncios[]
+}
+
+model marcas {
+  id       Int        @id @default(autoincrement())
+  nome     String     @unique @db.VarChar(100)
+  anuncios anuncios[]
+  modelos  modelos[]
+}
+
+model modelos {
+  id       Int        @id @default(autoincrement())
+  id_marca Int?
+  nome     String     @db.VarChar(100)
+  anuncios anuncios[]
+  marca    marcas?    @relation(fields: [id_marca], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([id_marca, nome])
+}
+
+model estados {
+  id        Int        @id @default(autoincrement())
+  codigo_uf Int
+  nome      String     @db.VarChar(50)
+  sigla     String     @db.Char(2)
+  regiao    Int
+  anuncios  anuncios[] @relation("anuncioEstado")
+}
+
+model municipio {
+  id       Int        @id @default(autoincrement())
+  codigo   Int        @unique
+  nome     String     @db.VarChar(255)
+  uf       String     @db.Char(2)
+  anuncios anuncios[] @relation("anuncioMunicipio")
+
+  @@map("municipio")
+}
+
+model anuncios {
+  id                Int               @id @default(autoincrement())
+  id_usuario        Int?
+  id_categoria      Int?
+  id_marca          Int?
+  id_modelo         Int?
+  id_estado         Int?
+  id_municipio      Int?
+  titulo            String            @db.VarChar(200)
+  descricao         String?
+  preco             Decimal           @db.Decimal(12, 2)
+  ano               Int?
+  horas_trabalhadas Int?
+  cor               String?           @db.VarChar(50)
+  criado_em         DateTime?         @default(now()) @db.Timestamp(6)
+  atualizado_em     DateTime          @default(now()) @db.Timestamp(6)
+  ativo             Boolean           @default(true)
+  imagens           anuncio_imagens[]
+  categoria         categorias?       @relation(fields: [id_categoria], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  marca             marcas?           @relation(fields: [id_marca], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  modelo            modelos?          @relation(fields: [id_modelo], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  usuario           usuarios?         @relation(fields: [id_usuario], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  estado            estados?          @relation("anuncioEstado", fields: [id_estado], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  municipio         municipio?        @relation("anuncioMunicipio", fields: [id_municipio], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  favoritos         favoritos[]
+
+  @@index([ano], map: "idx_anuncios_ano")
+  @@index([ativo], map: "idx_anuncios_ativo")
+  @@index([id_categoria], map: "idx_anuncios_categoria")
+  @@index([id_marca], map: "idx_anuncios_marca")
+  @@index([id_modelo], map: "idx_anuncios_modelo")
+  @@index([preco], map: "idx_anuncios_preco")
+}
+
+model anuncio_imagens {
+  id         Int       @id @default(autoincrement())
+  id_anuncio Int?
+  url        String
+  principal  Boolean?  @default(false)
+  criado_em  DateTime? @default(now()) @db.Timestamp(6)
+  anuncio    anuncios? @relation(fields: [id_anuncio], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([id_anuncio], map: "idx_anuncio_imagens_anuncio")
+}
+
+model favoritos {
+  id         Int       @id @default(autoincrement())
+  id_usuario Int?
+  id_anuncio Int?
+  criado_em  DateTime? @default(now()) @db.Timestamp(6)
+  anuncio    anuncios? @relation(fields: [id_anuncio], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  usuario    usuarios? @relation(fields: [id_usuario], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([id_usuario, id_anuncio])
+}
+
+model regiao {
+  id   Int    @id @default(autoincrement())
+  nome String @db.VarChar(50)
+}

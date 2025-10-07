@@ -23,9 +23,8 @@
           <h3 class="font-semibold mb-4">Links Rápidos</h3>
           <ul class="space-y-2">
             <li><NuxtLink to="/" class="text-gray-300 hover:text-white transition-colors">Início</NuxtLink></li>
-            <li><NuxtLink to="/maquinas" class="text-gray-300 hover:text-white transition-colors">Máquinas</NuxtLink></li>
-            <li><NuxtLink to="/anunciar" class="text-gray-300 hover:text-white transition-colors">Anunciar</NuxtLink></li>
-            <li><NuxtLink to="/sobre" class="text-gray-300 hover:text-white transition-colors">Sobre</NuxtLink></li>
+            <li><NuxtLink to="/login" class="text-gray-300 hover:text-white transition-colors">Entrar</NuxtLink></li>
+            <li><NuxtLink to="/register" class="text-gray-300 hover:text-white transition-colors">Cadastrar</NuxtLink></li>
           </ul>
         </div>
 
