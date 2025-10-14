@@ -1,18 +1,19 @@
 <template>
   <NuxtLink 
-    :to="`/anuncios/${machine.id}`" 
-    class="block bg-white rounded-lg shadow-sm hover:shadow-md overflow-hidden transition-all duration-200 h-full flex flex-col border border-gray-100"
-  >
+  :to="`/anuncios/${machine.id}`" 
+  class="group block bg-white rounded-2xl shadow-sm hover:shadow-lg overflow-hidden transition-all duration-300 h-full min-h-[400px] flex flex-col justify-between border border-gray-100"
+>
+
+  
     <!-- Imagem -->
     <div class="relative h-52 bg-gray-100 overflow-hidden flex-shrink-0">
-      <img 
-        v-if="imagemPrincipal" 
-        :src="imagemPrincipal" 
-        :alt="machine.titulo" 
-        class="w-full h-full object-cover transition-transform duration-300 hover:scale-105" 
-        loading="lazy" 
-        decoding="async" 
-      />
+  <img 
+    v-if="imagemPrincipal" 
+    :src="imagemPrincipal"
+    :alt="machine.titulo"
+    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 group-hover:brightness-90"
+    loading="lazy"
+  />
       <div v-else class="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
         <svg class="w-16 h-16 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
           <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
@@ -20,7 +21,9 @@
       </div>
       
       <!-- Badges -->
-      <div v-if="machine.categoria" class="absolute top-3 left-3 bg-green-600 text-white px-2.5 py-1 rounded-md text-xs font-semibold shadow-md">
+      <div v-if="machine.categoria" 
+       class="absolute top-3 left-3 bg-green-600/90 backdrop-blur text-white px-3 py-1 rounded-full text-xs font-semibold shadow"
+      >
         {{ machine.categoria.nome }}
       </div>
       <div v-if="machine.ano" class="absolute top-3 right-3 bg-gray-900 bg-opacity-80 text-white px-2.5 py-1 rounded-md text-xs font-medium shadow-md">
@@ -34,7 +37,7 @@
     <!-- Conteúdo -->
     <div class="p-4 flex flex-col flex-1">
       <!-- Título -->
-      <h3 class="font-bold text-base text-gray-900 line-clamp-2 min-h-[2.5rem] mb-2">
+      <h3 class="font-semibold text-base text-gray-900 line-clamp-2 min-h-[2.5rem] mb-2 group-hover:text-green-700 transition-colors">
         {{ machine.titulo }}
       </h3>
 
@@ -64,12 +67,13 @@
       <div class="mt-auto pt-4 border-t border-gray-100">
         <div class="flex items-center justify-between gap-3">
           <div class="flex-1 min-w-0">
-            <div class="text-2xl font-bold text-green-600 truncate">
+            <div class="text-2xl font-extrabold text-green-700 tracking-tight truncate">
               R$ {{ formatPrice(machine.preco) }}
             </div>
           </div>
-          <span class="flex-shrink-0 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
-            Ver
+          <span class="flex-shrink-0 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 shadow hover:shadow-md active:scale-95"
+          >
+            Ver detalhes
           </span>
         </div>
       </div>
