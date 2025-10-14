@@ -6,8 +6,15 @@ async function bootstrap() {
   
   // Habilitar CORS para o frontend
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:3001'],
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'https://agromaq.vercel.app', // Seu domínio de produção
+      /\.vercel\.app$/ // Aceita qualquer preview deploy da Vercel
+    ],
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 
   // Prefixo global para todas as rotas
