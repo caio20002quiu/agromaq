@@ -24,5 +24,12 @@ export default defineNuxtConfig({
     '/dashboard/**': { ssr: false },
     '/login': { ssr: false },
     '/register': { ssr: false }
+  },
+
+  // Configuração de runtime (variáveis de ambiente públicas)
+  runtimeConfig: {
+    public: {
+      apiUrl: process.env.NUXT_PUBLIC_API_URL || 'https://agromaq-back.vercel.app/api'
+    }
   }
 })

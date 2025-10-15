@@ -1,7 +1,7 @@
 // Composable para fazer chamadas à API do backend NestJS
 export const useApi = () => {
   const config = useRuntimeConfig()
-  const baseURL = 'http://localhost:4000/api'
+  const baseURL = config.public.apiUrl
 
   // Função helper para obter headers com token
   const getHeaders = () => {
