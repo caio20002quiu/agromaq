@@ -10,7 +10,7 @@
 
     <div v-else-if="error" class="container mx-auto px-4 py-8">
       <div class="bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded-lg">
-        <h2 class="text-xl font-bold mb-2">Erro ao carregar anúncio</h2>
+        <h2 class="text-xl font-bold mb-2">Erro ao carregar anúncio!</h2>
         <p>{{ error }}</p>
         <NuxtLink to="/" class="mt-4 inline-block text-red-600 hover:text-red-800 font-medium">
           ← Voltar para a página inicial
